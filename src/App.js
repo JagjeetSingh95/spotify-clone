@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
 
 import './App.css';
@@ -9,11 +9,11 @@ import { getTokenFromUrl } from "./spotify";
 
 import { useDataLayerValue } from './DataLayer';
 
-const spotify =  new SpotifyWebApi();
+const spotifyApi =  new SpotifyWebApi();
 
 function App() {
-  const [token, setToken] = useState(null);
-  const [{ user }, dispatch] = useDataLayerValue();
+  console.log("...token, dispatch...")
+  const [{ token }, dispatch] = useDataLayerValue();
 
   useEffect(() => {
    
@@ -22,28 +22,54 @@ function App() {
     const _token = hash.access_token;
 
     if(_token) {
-      setToken(_token);
+      spotifyApi.setAccessToken(_token);
 
-      spotify.setAccessToken(_token);
-      spotify.getMe().then(user => {
-        console.log(user, "...user..")
+      dispatch({
+        type: 'SET_TOKEN',
+        payload: _token
+      })
 
+      spotifyApi.getMe().then(user => {
         dispatch({
           type: 'SET_USER',
           payload: user
         })
-
       })
+
+      spotifyApi.getUserPlaylists().then((playlists) => {
+        dispatch({
+          type: "SET_PLAYLISTS",
+          payload: playlists
+        });
+      });
+
+      spotifyApi.getPlaylist("0Z0eTWH2SwI7G7YbOTyWdv").then((response) =>
+        dispatch({
+          type: "SET_DISCOVER_WEEKLY",
+          discover_weekly: response,
+        })
+      );
+
+      spotifyApi.getMyTopArtists().then((response) =>
+        dispatch({
+          type: "SET_TOP_ARTISTS",
+          top_artists: response,
+        })
+      );
+
+      dispatch({
+        type: "SET_SPOTIFY",
+        spotify: spotifyApi,
+      });
+
     }
 
-  }, []);
-
-  console.log(user, "..user context api.")
+  }, [token, dispatch]);
 
   return (
     <div className="App">
       {
-        token ? <Player /> : <Login />
+        token ? <Player spotify={spotifyApi} /> : <Login />
       }
     </div>
   );

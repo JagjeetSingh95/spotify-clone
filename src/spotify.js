@@ -1,5 +1,5 @@
 export const authEndpoint = "https://accounts.spotify.com/authorize";
-const redirectUri = "http://localhost:3000/";
+const redirectUri = "https://spotify-clone-jagjeet.web.app/";
 const clientId = "49e948ab8e72429eb72ae4b2abc03497";
 
 const scopes = [
